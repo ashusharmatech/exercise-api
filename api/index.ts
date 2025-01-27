@@ -1,4 +1,8 @@
+const mongoose = require('mongoose');
+
 require('dotenv').config();
+
+const MONGODB_URI = process.env.MONGODB_URI 
 
 const express = require('express');
 const app = express();
@@ -8,6 +12,26 @@ const path = require('path');
 
 // Create application/x-www-form-urlencoded parser
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
+
+// Define Exercise Schema
+const exerciseSchema = new mongoose.Schema({
+    name: String,
+    target: String,
+    bodyPart: String,
+    equipment: String,
+}, { strict: false });
+
+
+const Exercise = mongoose.model('Exercise', exerciseSchema, 'exercises');
+
+app.get('/api/exercises', async (req, res) => {
+    try {
+        const exercises = await Exercise.find({});
+        res.json(exercises);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 app.use(express.static('public'));
 
