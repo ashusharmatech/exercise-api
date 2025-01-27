@@ -2,7 +2,6 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-const { sql } = require('@vercel/postgres');
 
 const bodyParser = require('body-parser');
 const path = require('path');
