@@ -17,9 +17,13 @@ const MONGODB_URI = process.env.MONGODB_URI;
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Timeout for MongoDB connection
 })
 .then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('MongoDB connection error:', err));
+.catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit process with failure if MongoDB is not reachable
+});
 
 // Define Exercise Schema
 const exerciseSchema = new mongoose.Schema({
@@ -33,11 +37,20 @@ const Exercise = mongoose.model('Exercise', exerciseSchema, 'exercises');
 
 // API Routes
 app.get('/api/exercises', async (req, res) => {
+    const startTime = Date.now(); // Start timer for debugging
+
     try {
+        console.log('Fetching all exercises...'); // Log query start
+
         const exercises = await Exercise.find({});
+        
         if (!exercises || exercises.length === 0) {
             return res.status(404).json({ message: 'No exercises found' });
         }
+
+        const endTime = Date.now(); // End timer
+        console.log(`Fetched ${exercises.length} exercises in ${endTime - startTime}ms`); // Log execution time
+
         res.json(exercises);
     } catch (error) {
         console.error('Error fetching exercises:', error);
@@ -46,15 +59,24 @@ app.get('/api/exercises', async (req, res) => {
 });
 
 app.get('/api/exercises/:id', async (req, res) => {
+    const startTime = Date.now(); // Start timer for debugging
+
     try {
+        console.log(`Fetching exercise with ID: ${req.params.id}`); // Log query start
+        
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({ message: 'Invalid exercise ID' });
         }
-        
+
         const exercise = await Exercise.findById(req.params.id);
+        
         if (!exercise) {
             return res.status(404).json({ message: 'Exercise not found' });
         }
+
+        const endTime = Date.now(); // End timer
+        console.log(`Fetched exercise in ${endTime - startTime}ms`); // Log execution time
+
         res.json(exercise);
     } catch (error) {
         console.error('Error fetching exercise:', error);
@@ -77,7 +99,7 @@ app.get('/uploadUser', function (req, res) {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error('Error occurred:', err.stack);
     res.status(500).json({ message: 'Something broke!' });
 });
 
