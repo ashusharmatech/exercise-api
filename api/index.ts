@@ -33,6 +33,19 @@ app.get('/api/exercises', async (req, res) => {
     }
 });
 
+
+app.get('/api/exercises/:id', async (req, res) => {
+    try {
+        const exercise = await Exercise.findById(req.params.id);
+        if (!exercise) {
+            return res.status(404).json({ message: 'Exercise not found' });
+        }
+        res.json(exercise);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
